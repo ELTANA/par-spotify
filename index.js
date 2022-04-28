@@ -3,11 +3,15 @@ const express = require('express')
 const app = express()
 const queryString = require('query-string')
 const axios = require('axios')
+const path = require('path')
 
-const port = 8888
 const CLIENT_ID = process.env.CLIENT_ID
 const CLIENT_SECRET = process.env.CLIENT_SECRET
 const REDIRECT_URI = process.env.REDIRECT_URI
+const FRONTEND_URI = process.env.FRONTEND_URI
+const PORT = process.send.PORT || 8888
+
+app.use(express.static(path.resolve(_dirname, './client/build')))
 
 app.get('/', (req, res) => {
   const data = {
@@ -76,7 +80,7 @@ app.get('/callback', (req, res) => {
           refresh_token,
         })
 
-        res.redirect(`http://localhost:3000/?${queryParams}`)
+        res.redirect(`${FRONTEND_URI}?${queryParams}`)
       } else {
         res.redirect(`/?${queryString.stringify({ error: 'invalid_token' })}`)
       }
@@ -99,6 +103,11 @@ app.get('/refresh_token', (req, res) => {
     })
 })
 
-app.listen(port, () => {
-  console.log(`Express app listening at http://localhost:${port}`)
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(_dirname, './client/build', 'index.html'))
+})
+
+// All remaining requests return the React app, so it can handle the routing.
+app.listen(PORT, () => {
+  console.log(`Express app listening at http://localhost:${PORT}`)
 })
